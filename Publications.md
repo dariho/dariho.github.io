@@ -36,7 +36,7 @@ layout: page
  3. Ana Peinado; **Darias Holgado**; Antonio Luque Casado; Miguel Rojo Tirado; Daniel Sanabria Lucena; Coral González; Manuel Mateo-March; Cristobal Sanchez Muñoz; Francisco Calderón; Mikel Zabala. 2018. Effect of induced alkalosis on performance during a field-simulated BMX cycling competition. Journal of Science and Medicine in Sport. 08/2018.[Online Article](https://doi.org/10.1016/j.jsams.2018.08.010)
 ### 2017
  1. **Darías Holgado**; Thomas Zandonai; Mikel Zabala; James Hopker; Pandelis Perakakis; Antonio Luque Casado; Luis Ciria; Eduardo Guerra Hernandez; Daniel Sanabria. 2017. Tramadol effects on physical performance and sustained attention during a 20-min indoor cycling time-trial: A randomised controlled trial. Journal of Science and Medicine in Sport. 01/11/2017.[Online Article](https://doi.org/10.1016/j.jsams.2017.10.032)
- 2. **Darias Holgado**; James Hopker; Daniel Sanabria; Mikel Zabala. 2017. Analgesics and Sport Performance: Beyond the Pain Modulating Effects. PM&R. [Online Article](https://doi.org/10.1016/j.pmrj.2017.07.068)
+ 2.   **Darias Holgado**; James Hopker; Daniel Sanabria; Mikel Zabala. 2017. Analgesics and Sport Performance: Beyond the Pain Modulating Effects. PM&R. [Online Article](https://doi.org/10.1016/j.pmrj.2017.07.068)
 
 ## Screenshots
 
