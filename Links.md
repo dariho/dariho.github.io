@@ -1,5 +1,5 @@
 ---
-title: "Linnks"
+title: "Links to data"
 permalink: "/Links to data/"
 layout: page
 ---
@@ -17,5 +17,5 @@ You can find all data for the experiments and literature reviews from the public
 - [Transcranial direct current stimulation (tDCS) over the left prefrontal cortex does not affect time-trial self-paced cycling performance: Evidence from oscillatory brain activity and power output](https://zenodo.org/record/1313703#.XDgoQM9KjOQ; https://osf.io/rf95j/) 
 - [The effects of transcranial direct current stimulation on objective and subjective indexes of exercise performance: a systematic review and meta-analysis](https://osf.io/bh3g9/)
 - [No evidence of the effect of cognitive load on self-paced cycling performance](https://osf.io/qept5/)
-- [Tramadol effects on physical performance and sustained attention during a  20-min indoor cycling time-trial: A randomised controlled trial]( https://osf.io/xbvt5/) 
+- [Tramadol effects on physical performance and sustained attention during a  20-min indoor cycling time-trial: A randomised controlled trial]( https://osf.io/xbvt5/) |  
   [EEG data](https://zenodo.org/record/1308615#.Yfz5d_XMLOQ)
