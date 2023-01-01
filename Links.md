@@ -1,6 +1,6 @@
 ---
-title: "Publications"
-permalink: "/Publications/"
+title: "Linnks"
+permalink: "/Links to data/"
 layout: page
 ---
 
