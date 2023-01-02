@@ -20,4 +20,4 @@ For a Brief CV (probably not updated to the latest, sorry) -≥ click here or se
 
 # Twitter feed
 
-<a class="twitter-timeline" href="https://twitter.com/DariasHolgado?ref_src=twsrc%5Etfw">Tweets by DariasHolgado</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+#<a class="twitter-timeline" href="https://twitter.com/DariasHolgado?ref_src=twsrc%5Etfw">Tweets by DariasHolgado</a> <script async #src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
