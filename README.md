@@ -4,6 +4,9 @@ permalink: "/about/"
 layout: page
 ---
 
+
+<a class="twitter-timeline" href="https://twitter.com/DariasHolgado?ref_src=twsrc%5Etfw">Tweets by DariasHolgado</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
 ## Installation
 
 Just fork this [repository](https://github.com/niklasbuschmann/contrast) and adjust the `_config.yml` to use with [Github Pages](https://pages.github.com/) and your page is done.
