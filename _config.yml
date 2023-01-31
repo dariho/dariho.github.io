@@ -19,9 +19,9 @@ navigation:                # accepts {file, title, url, icon, sidebaricon}
   - {file: "Home.md", title: "Home", sidebaricon: home}
   - {file: "Publications.md", title: "Publications", sidebaricon: adress-card}
   - {file: "Projects.md", title: "Projects", sidebaricon: adress-card}
-  - {file: "Media.md", title: "Media", sidebaricon: home}
+  #- {file: "Media.md", title: "Media", sidebaricon: home}
   - {file: "Links.md", title: "Links to data", sidebaricon: home}
-  - {file: "README.md", title: "Leisure", sidebaricon: home}
+  - {file: "Projects.md", title: "Leisure", sidebaricon: home}
 
 external:                  # shows a footer with social links - for available icons see fontawesome.com/icons
   - {title: Mail, icon: envelope, url: "mailto:darias.holgado@unil.ch"}
