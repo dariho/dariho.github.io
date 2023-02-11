@@ -1,0 +1,925 @@
+---
+title: "Disentangling fatigue from fatigability"
+author: "Darías Holgado"
+date: "2023-01-29"
+output:
+  rmdformats::readthedown:
+    highlight: kate
+    code_folding: hide
+  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+***
+## Contents
+1. Introduction 
+2. Cognitive tasks
+3. Subjective data
+4. Performance
+5. Knee extensors evaluation
+6. Transcranial Magnetic Stimulation (TMS)
+7. Brain Oxygenation 
+8. Conclusions
+
+***
+## 1. Introduction
+This is an R Markdown report of **"Disentangling fatigue from fatigability: can individualization of mental fatigue help?"** dedicated especially to the participants of the study, but if you are interested in the subject, want to replicate the results or basics R codes, it is open to everyone.
+
+Since you have spent a lot of time in the study, what can we do without telling you what we have done with your data? This document is a mix of a report without excessive scientific argon, R codes (there is a button to show or hide it) and self-dairy to follow the history.
+
+For each variable we measured, there is a part with the median/average values and distribution of the data, and a part with your individual data. To check your individual data, please [Contact me](mailto:darias.holgado@unil.ch?Subject=IDstudy) and I send you your assigned ID. 
+Probably, some of the code steps are redundant and not necessary, but I am also learning, improving and doing this mostly for "fun" and because I believe we should be more transparent in the scientific community. You do not need previous experience with R to follow this. In any case, the code is always nicely commented in most cases.
+
+The corresponding material to reproduce the document is also available in [OSF](https://osf.io/xc8nr/), but with this document is self-sufficient.
+
+
+Having said that, a brief reminder of what you did in the study:
+![Protocol](Images/ProtocolIMF22.png)
+
+We need a bunch of packages to reproduce this projects, like *tidyverse*, *readxl*, *ggplot*, etc. They are uploaded here automatically, but I omit this part of the code in this document.
+```{r data, warning=TRUE, echo=FALSE, include=FALSE}
+require(tidyverse)
+library(tibble)
+library(plotly)
+require(readxl)
+library(ggeasy)
+library(cowplot)
+library(report)
+library(easystats)
+library(writexl)
+require(rstatix)
+require(gridExtra)
+require(gifski)
+require(ggpubr)
+library(smplot2)
+library(gtsummary)
+library(gt)
+library(webshot2)
+library(magick)
+library(directlabels)
+library(rstanarm)
+library(lme4)
+library(Rmisc) 
+library(PupillometryR)
+library(emo)
+library(osfr)
+library("httr")
+```
+
+First, we need to load all data sets available in OSF:
+```{r setwd-load, error=FALSE, warning=FALSE, message=FALSE}
+# Loading directly all data available in OSF
+
+invisible({capture.output({
+
+# EMG-FORCE
+url <- 'https://osf.io/y8kpq//?action=download'
+filename <- 'IMF22_Force_EMG.xlsx'
+GET(url, write_disk(filename, overwrite = TRUE))
+  EMG <- readxl::read_xlsx(filename, sheet= "EMG")
+  force <- readxl::read_xlsx(filename, sheet= "Force")
+# Performance-RPE-VAS
+url <- 'https://osf.io/6gyc2//?action=download'
+filename <- 'IMF22_Performance_RPE_VAS_Long.xlsx'
+GET(url, write_disk(filename, overwrite = TRUE))
+  data<- readxl::read_xlsx(filename)
+
+# TMS
+url <- 'https://osf.io/qhw7c//?action=download'
+filename <- 'IMF22_TMS.xlsx'
+GET(url, write_disk(filename, overwrite = TRUE))
+  TMS<- readxl::read_xlsx(filename)  
+
+# Cognitive tasks
+url <- 'https://osf.io/jg5m9//?action=download'
+filename <- 'IMF22_Task.xlsx'
+GET(url, write_disk(filename, overwrite = TRUE))
+  IMF<- readxl::read_xlsx(filename)  
+})})
+
+```
+
+***
+
+## 2. Cognitive taks
+In this experiment, you completed two different tasks. The control (easy task) condition was a *0-back*, where the participant only had to press the space bar every time they see the letter "X". In the mental fatigue condition (high cognitive load), participants completed the *TloadDback task*. In this task, a sequence of letter and number appeared in the screen, and the participant had to respond to odd/even number and if the current letter was the same as the previous one. The inter stimulus duration (i.e., the time between each number and letter) was adapted individually in the first visit.
+
+### 2.1 Pre-processing the data.
+
+We have a look at the data set of the cognitive tasks
+```{r check IMF, echo= T}
+head(IMF)
+```
+
+Here, we have the data for both task, but in wide format. For making the figures for the global performance, we (normally) need to transform it in long format.
+
+```{r change long IMF}
+# Change to long format. We merge col 2 to 17 (separated by_) and we keep only 4 cols. Participant, Time, Condition and the variable with the performance. 
+IMF_long<- pivot_longer(IMF, cols =2:17, names_to = c("Time", "Condition"),
+                       names_sep = "_", values_to = "Performance", values_drop_na = TRUE) 
+# Rename the name of the conditions for illustrative purpose
+IMF_long<-IMF_long %>% mutate(Condition= recode(Condition, LCL ="Control", HCL= "Mental fatigue"))
+head(IMF_long)
+```
+Compared to the previous table, now the Condition and Time are distributed in two columns across participants. The task is divided in 8 blocks of approximately 4min.
+
+### 2.2 Global performance
+We calculated the global performance of the task, that to say, percentage of correct responses.
+
+```{r IMF global}
+#First step is to calculate the average.
+# Calculate the average across participants for each time and condition for the global performance data.
+IMF_longavg <- IMF_long %>% 
+  group_by(Condition, Time) %>% 
+  summarise_at(vars(Performance),           
+               list(average = mean))              
+
+# Standardize size of the text across all figures. We will use this for all figures.
+size = theme(
+  title = element_text(size = 12),
+  axis.text.x = element_text(size = 12),
+  axis.title.y = element_text(size = 12),
+  axis.title.x = element_text(size = 12))
+
+# Create the plot with global performance for each task
+IMF.plot <- ggplot(IMF_longavg) +
+  aes(x = Time, y = average, colour = Condition, group = Condition) +
+  geom_smooth(method = "lm")+
+  scale_color_brewer(palette = "Set2", direction = 1) +
+  sm_minimal() +  
+  guides(fill = "none") +
+  labs( y = "Performance (%)",
+        caption = "n = 22",
+        title ="Behavioral performance on tasks")+
+  size
+```
+
+The figure:
+```{r, echo=FALSE}
+IMF.plot
+```
+
+This is the performance (percentage of correct responses) in both cognitive tasks and across time. The individualized cognitive effort task was actually more difficult than the control task. Performance in the control task was close to 100% across time, but in the mental fatigue is lower and tends to descend across time.That to say, the task was more demanding and it is what we expected. Furthermore, this is corroborated with the subjective data (as we will see later). 
+
+### 2.3 Individual performance
+That was the average performance, but now, we will visualize the individual data for each of you for the high cognitive load. We will see that everyone does not perform equally in the task or across time.
+
+```{r IMF Ind, echo=TRUE}
+# Filter the data set for getting mental fatigue condition
+HCL <-  filter(IMF_long, Condition == "Mental fatigue")
+
+HCL.plot <- ggplot(HCL, aes(x = Time, y = Performance, color = Participant, group = Participant)) +
+  geom_line(linetype = 1,
+            linewidth = 1.2) +
+  guides(color = guide_legend(title = "ID"))+
+  scale_color_identity(labels = paste("ID", 1:22))+
+  sm_minimal() +
+  guides(fill = "yes") +
+  labs( y = "Performance (%)",
+        caption = "n = 22",
+        title ="Individual performance across the task") +
+  geom_dl(aes(label = Participant), method = list(dl.combine("first.points", "last.points")), cex = 0.3, alpha = 0.5) +
+  size
+
+HCL.plot
+
+```
+
+However, a static graph is not clear since lines are overlapped. Thus, you can check your individual performance in the following interactive plot  if you place the mouse over your ID line and Time. Never compare with others, what others do is not your business `r emo::ji("wink")` 
+
+```{r IND ggplotly, warning=FALSE}
+# Pass the ggplot to a ggplotly
+ggplotly(HCL.plot)
+```
+Maybe, one limitation of the task is that after we established your threshold in the familiarization, you did not perform the task at that given speed. Hence, in the experimental visit could have been a familiarization effect. Something  to consider for future studies.
+
+***
+## 3. Subjective data
+We refer subjective data to the visual analog scales (*in the excel*) that you used to indicate your subjective level of mental fatigue and activation.
+  
+```{r , echo=FALSE}
+# load data (already in long format)
+# head(data)
+```
+
+### 3.1 Global values
+  
+This part is what we call manipulation check, i.e., to prove that our intervention (mental fatigue) was really effective. 
+```{r VAS global, echo=TRUE, warning=FALSE}
+
+FatigueRain <- ggplot(data = data, mapping = aes(x = Condition, y = VAS_FAT_NOR)) +
+  geom_flat_violin(aes(fill = Condition),position = position_nudge(x = .1, y = 0), adjust = 1.5, trim = FALSE, alpha = .5, colour = NA)+
+  geom_boxplot(aes(x = Condition, y = VAS_FAT_NOR, fill = Condition),outlier.shape = NA, alpha = .5, width = .1, colour = "black")+
+  sm_minimal() +
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  geom_point(aes(fill = Condition, group=ID), size=2,shape=21)+
+  geom_line(aes(group=ID),  linewidth=0.3, color='gray', alpha=0.6) +
+  guides(fill = "none") +
+  labs( y = "Normalize score (AU)", x = element_blank(),
+        title ="Subjective level of mental fatigue",
+        caption = "n = 21")+
+  size
+
+
+ActivationRain <- ggplot(data = data, mapping = aes(x = Condition, y = VAS_ARO_NOR)) +
+  geom_flat_violin(aes(fill = Condition),position = position_nudge(x = .1, y = 0), adjust = 1.5, trim = FALSE, alpha = .5, colour = NA)+
+  geom_boxplot(aes(x = Condition, y = VAS_ARO_NOR, fill = Condition),outlier.shape = NA, alpha = .5, width = .1, colour = "black")+
+  sm_minimal() +
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  geom_point(aes(fill = Condition, group=ID), size=2,shape=21)+
+  geom_line(aes(group=ID),  linewidth=0.3, color='gray', alpha=0.6) +
+  guides(fill = "none") +
+  labs( y = "Normalize score (AU)", x = element_blank(),
+        title ="Subjective level of arousal",
+        # subtitle = "BF10 = 0.487; Anecdotal evidence in favour of the null hypothesis 
+        # (i.e., activation is similar for bot tasks) ",
+        caption = "n = 21" ) +
+  size
+
+# Arrange the 2 figures in 2 cols and 1 row. Put a common legend on the left side
+VASplots <- ggarrange(FatigueRain, ActivationRain,
+                     labels = c("A", "B"),
+                     ncol = 2, nrow = 1, 
+                     common.legend = T,
+                     legend = "right",
+                     align = "none"
+)
+
+VASplots
+
+# Alternatively, we could this to place 2 figures in 2 columns (only for a Rm document)
+# `{r out.width=c('50%', '50%'), fig.show='hold'}
+# FatigueRain
+# ActivationRain
+
+
+
+```
+
+Panel A) and B) depict a Rain Cloud plot for the VAS questions. The raincloud plot shows the cloud of points (i.e., individual raw data) connected by lines between each condition, a box plot and a one-sided violin plot (showing the probability density of the data at different values). A) Subjective level of mental fatigue. The shape of distribution indicates that in both conditions the observed values were located around the median (everyone follow a similar patron), but the subjective level of mental fatigue was ~ twice higher after the high cognitive load task compared to the control condition. Furthermore, individual data shows that most of the participants were more mentally fatigued after completing the mental fatigue task. B) Subjective level of arousal. In contrast, subjective arousal level was similar across conditions, which shows that performing a task with low cognitive load (control task) did not reduce the arousal level. This data shows that the manipulation was indeed effective to induce the mental fatigue state, but arousal did not change. If we had not achieved this, we would have had a problem of experimental design `r emo::ji("relieved")`.
+
+### 3.2 Individual values
+However, how does it vary individually? The values are arbitrary units, so they do not represent anything, but a change in a score, i.e, more or less mental fatigue. You can again check you individual data. Place the mouse over the points or box
+```{r FATint, warning=FALSE, echo=TRUE}
+
+# interactive graph
+ggplotly(FatigueRain, width = 600, height= 900)
+```
+
+***
+## 4.Perfomance and perception of effort
+
+Finally, we can contrast if `r emo::ji("cyclist")` performance and your perception of effort (RPE) was actually affected by the mental fatigue state and the long cognitive effort that you had to do.
+
+### 4.1 Global performance
+
+```{r Performance, echo= TRUE}
+# Rain cloud  plot
+PerformanceRPlot <- ggplot(data = data, mapping = aes(x = Condition, y = Performance)) +
+  geom_flat_violin(aes(fill = Condition),position = position_nudge(x = .1, y = 0), adjust = 1.5, trim = FALSE, alpha = .5, colour = NA)+
+  geom_boxplot(aes(x = Condition, y = Performance, fill = Condition),outlier.shape = NA, alpha = .5, width = .1, colour = "black")+
+  sm_minimal() +
+  geom_point(aes(fill = Condition, group=ID), size=2,shape=21)+
+  geom_line(aes(group=ID),  linewidth=0.3, color='gray', alpha=0.6) +
+  guides(fill = "none") +
+  labs( y = "Time to exhaustion time (seconds)", x = element_blank(),
+        title ="Performance",
+        caption = "n = 22")+
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+ 
+  theme(plot.background = element_rect(colour = NA)) +
+  size
+
+RPERPlot <- ggplot(data = data, mapping = aes(x = Condition, y = RPE)) +
+  geom_flat_violin(aes(fill = Condition),position = position_nudge(x = .1, y = 0), adjust = 1.5, trim = FALSE, alpha = .5, colour = NA)+
+  geom_boxplot(aes(x = Condition, y = RPE, fill = Condition),outlier.shape = NA, alpha = .5, width = .1, colour = "black")+
+  sm_minimal() +
+  geom_point(aes(fill = Condition, group=ID), size=2,shape=21)+
+  geom_line(aes(group=ID),  linewidth=0.3, color='gray', alpha=0.6) +
+  guides(fill = "none") +
+  labs( y = "Borg scale 1-10 (AU)", x = element_blank(),
+        title ="RPE",
+        caption = "n = 22")+
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+ 
+  theme(plot.background = element_rect(colour = NA)) +
+  size
+
+# Arrange the plots together
+PerRPE <- ggarrange(PerformanceRPlot, RPERPlot,
+                            labels = c("A", "B"),
+                            ncol = 2,
+                            common.legend = T,
+                            legend = "right",
+                            align = "h"
+)
+PerRPE
+```
+
+The Rain Cloud plot for (A) physical performance in the cycling time-to-exhaustion test at 80% of peak power output and (B) average rate of perceived exertion during the time-to-exhaustion test. The shape of distribution indicates that in both conditions values were located around the median, but there were no differences between conditions. Individual data shows that 12 out 22 participants performed better in the mental fatigue condition, 9 performed better in the control condition and 1 performed equally. Similarly, the distribution of the RPE values were around the median and there were no differences between both conditions.
+
+The "hypothesis" was that mental fatigue would impair your performance (i.e., less time completed) and increase your RPE, but this was not the case in this study.
+
+
+### 4.2 Individual Performance
+```{r, echo=TRUE}
+# Cleveland plot
+
+brks <- c(seq(-900, 900, by = 60))
+# Configure labels for the graph
+lbls = c(seq(900, 0, -60), seq(60, 900, 60))
+
+# Generate Plot
+PerfoIND <- data %>%  # Cast the users table as a number
+  mutate(Performance = as.numeric(Performance)) %>%
+  # Pipe into ggplot
+  ggplot(aes(x = reorder(ID,(Performance)), y = Performance, fill = Condition)) +
+  # Plot the point
+  geom_point(aes(color = Condition))+
+  # join the point
+  geom_line(aes(group = ID), linewidth = 0.1) +
+  # Shift the y axis
+  scale_y_continuous(breaks = brks, labels = lbls) +
+  # Flip the coordinates
+  coord_flip() +
+  # Add a theme
+  sm_classic() +
+  # Add a title
+  labs(title="Individual Performance", 
+       y = "Time to exhaustion time (seconds)", x = "ID",
+       caption = "n = 22") +
+  # Add more theming options
+  theme(plot.title = element_text(hjust = .5),
+        axis.ticks = element_blank())+
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  size
+
+ggplotly(PerfoIND)
+```
+
+ `r emo::ji("clap")` `r emo::ji("clap")` `r emo::ji("clap")` `r emo::ji("clap")`
+
+***
+
+## 5. Knee extensor evaluation
+In this part, we measured different parameters to assess if the mental fatigue state affected your development of force (MVC) and if there were any effect at peripheral (muscle) level. Then, whether this will eventually explain the "lower performance" (if there had been). These are the date related to the chair with the electrical stimulation that many of you liked ``r emo::ji("smile")`
+
+### 5.1 Pre-processing the data and global performance
+Let's start checking the data already loaded:
+```{r force check}
+head(force) 
+```
+There are several variables in the data frame, thus we need to filter each variable to see individual variables.
+
+In addition, we need to do a bit of processing to keep the order of the time (Pre should be before Post) and defined as factors.
+```{r force order}
+# We specify the order that should appear in the graph the time.
+# By default they are ordered alphabetically or "randomly" 
+# If we do  not specify Post would come first than Pre alphabetically
+force$Time <- factor(force$Time, levels=c("Pre", "Post Task", "Post TTE"))
+force$Condition <- factor(force$Condition, levels=c("Control", "Mental Fatigue"))
+```
+We can now process to the results:
+
+For example, for the the maximal voluntary contraction (MVC): 
+```{r MVC}
+# filter a data.frame with only the variable of interest
+MVC <-  filter(force, Variable == "MVC")
+
+#We calculate some data to add to the graph. 
+sumrepdatMVC <- summarySE(MVC, measurevar = "Value",
+                       groupvars=c("Condition", "Time"))
+
+MVCrain <- ggplot(MVC, aes(x = Time, y = Value, fill = Condition)) +
+  geom_flat_violin(aes(fill = Condition),position = position_nudge(x = .1, y = 0), adjust = 1.5, trim = FALSE, alpha = .5, colour = NA)+
+  geom_point(aes(x = as.numeric(Time)-.15, y = Value, colour = Condition),position = position_jitter(width = .05), size = .25, shape = 20)+
+  geom_boxplot(aes(x = Time, y = Value, fill = Condition),outlier.shape = NA, alpha = .5, width = .1, colour = "black")+
+  geom_line(data = sumrepdatMVC, aes(x = as.numeric(Time)+.1, y = Value, group = Condition, colour = Condition), linetype = 3)+
+  geom_point(data = sumrepdatMVC, aes(x = as.numeric(Time)+.1, y = Value, group = Condition, colour = Condition), shape = 18) +
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  sm_classic() +
+  labs( y = "MVC Force (N)", x = element_blank(),
+        title ="Maximal Voluntary Contraction",
+        caption = "n = 21")+
+size
+
+MVCrain
+```
+
+We see that on average, the capacity to produce force is reduced across time, in particular after the cycling exercise. However, this did not vary between the conditions. So, we can certainly firm that subjective mental fatigue do not affect maximal force development.
+
+We will do the same for the other variables:
+
+```{r VAL, echo=TRUE}
+# Val rain
+VAL <- filter(force, Variable == "VAL")
+
+sumrepdatVAL <- summarySE(VAL, measurevar = "Value",
+                       groupvars=c("Condition", "Time"))
+
+VALrain <- ggplot(VAL, aes(x = Time, y = Value, fill = Condition)) +
+  geom_flat_violin(aes(fill = Condition),position = position_nudge(x = .1, y = 0), adjust = 1.5, trim = FALSE, alpha = .5, colour = NA)+
+  geom_point(aes(x = as.numeric(Time)-.15, y = Value, colour = Condition),position = position_jitter(width = .05), size = .25, shape = 20)+
+  geom_boxplot(aes(x = Time, y = Value, fill = Condition),outlier.shape = NA, alpha = .5, width = .1, colour = "black")+
+  geom_line(data = sumrepdatVAL, aes(x = as.numeric(Time)+.1, y = Value, group = Condition, colour = Condition), linetype = 3)+
+  geom_point(data = sumrepdatVAL, aes(x = as.numeric(Time)+.1, y = Value, group = Condition, colour = Condition), shape = 18) +
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  sm_classic() +
+  labs( y = "Voluntary activation (%)", x = element_blank(),
+        title ="Voluntary Activation Level",
+        caption = "n = 21")+
+  size
+VALrain
+```
+
+During the MVC, we send you an electrical stimuli superimposed at the level of the peripheral nerve by stimulating the motor axons of the contracting muscle. When the force output is increased by these superimposed electrical stimuli, the person's voluntary activation (the “completeness” of skeletal muscle activation during voluntary contraction) is considered to be sub-maximal. Therefore, in a idilyc snecario your voluntary activation level (VAL) should be around 100%. We see that after the cognitive task, on average, the VAL increased, but it might be normal due to de carry-over effect of the first MVC and warm-up. Then, after the cycling exercise, it is normal that your VAL is reduced due to the fatigue. Nonetheless, the VAL did not change between the two conditions.
+
+```{r Doublet, echo=TRUE, warning=FALSE}
+# Doublet rain
+Doublet <-  filter(force, Variable == "Doublet100Hz")
+# Drop a missing value
+Doublet = drop_na(Doublet)
+sumrepdatDoub <- summarySE(Doublet, measurevar = "Value",
+                          groupvars=c("Condition", "Time"))
+
+Doubletrain <- ggplot(Doublet, aes(x = Time, y = Value, fill = Condition)) +
+  geom_flat_violin(aes(fill = Condition),position = position_nudge(x = .1, y = 0), adjust = 1.5, trim = FALSE, alpha = .5, colour = NA)+
+  geom_point(aes(x = as.numeric(Time)-.15, y = Value, colour = Condition),position = position_jitter(width = .05), size = .25, shape = 20)+
+  geom_boxplot(aes(x = Time, y = Value, fill = Condition),outlier.shape = NA, alpha = .5, width = .1, colour = "black")+
+  geom_line(data = sumrepdatDoub, aes(x = as.numeric(Time)+.1, y = Value, group = Condition, colour = Condition), linetype = 3)+
+  geom_point(data = sumrepdatDoub, aes(x = as.numeric(Time)+.1, y = Value, group = Condition, colour = Condition), shape = 18) +
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  sm_classic() +
+  labs( y = "100 Hz paired stimulation (N)", x = element_blank(),
+        title ="Potentiated doublet amplitude (100Hz)",
+        caption = "n = 20")+
+  size
+
+
+Doubletrain
+```
+
+The potentiated doublet amplitude (100Hz) is considered the gold standard to assess peripheral fatigue of the muscle. The amplitude of the force was specially reduced after the cycling exercise (which is logical), but there were not difference between conditions at any point.
+```{r Ratio, echo=TRUE}
+# Ratio rain
+Ratio <- filter(force, Variable == "Ratio 10Hz/100Hz")
+# Drop a missing value
+Ratio = drop_na(Ratio)
+sumrepdatRatio <- summarySE(Ratio, measurevar = "Value",
+                           groupvars=c("Condition", "Time"))
+
+
+Ratiorain <- ggplot(Ratio, aes(x = Time, y = Value, fill = Condition)) +
+  geom_flat_violin(aes(fill = Condition),position = position_nudge(x = .1, y = 0), adjust = 1.5, trim = FALSE, alpha = .5, colour = NA)+
+  geom_point(aes(x = as.numeric(Time)-.15, y = Value, colour = Condition),position = position_jitter(width = .05), size = .25, shape = 20)+
+  geom_boxplot(aes(x = Time, y = Value, fill = Condition),outlier.shape = NA, alpha = .5, width = .1, colour = "black")+
+  geom_line(data = sumrepdatRatio, aes(x = as.numeric(Time)+.1, y = Value, group = Condition, colour = Condition), linetype = 3)+
+  geom_point(data = sumrepdatRatio, aes(x = as.numeric(Time)+.1, y = Value, group = Condition, colour = Condition), shape = 18) +
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  sm_classic() +
+  labs( y = "Ratio 10Hz/100Hz (%)", x = element_blank(),
+        title ="Ratio 10 Hz / 100 Hz",
+        caption = "n = 21")+
+  size
+
+Ratiorain
+```
+
+And finally, the Ratio 10 Hz / 100 Hz is another indicator of fatigue. Showing similar patron as the potentiated doublet 
+
+### 5.2 Individual data 
+Now you can easily check your individual values.
+```{r IND MVC, echo=TRUE}
+# Individual Plot MVC
+
+MVCIND<-ggplot(MVC, aes(x = Time, y = Value))
+MVCIND <- MVCIND + geom_line(aes(color = Condition, group = ID)) + geom_point()
+
+
+# Divide panels for conditions (rows) and participants (columns)
+MVCIND <- MVCIND + facet_grid(Condition ~ ID) 
+
+
+MVCIND <- MVCIND +
+  labs (y= "MVC Force (N)",
+    x= element_blank(),
+    title = "MVC for each participant",
+    caption = "n = 21") +
+  theme(
+    strip.background = element_blank(),
+    legend.title = element_blank(),
+    strip.text.x = element_blank())+
+  sm_minimal()+
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90, hjust = 1, size = 7))+
+  easy_remove_legend()
+
+
+ggplotly(MVCIND, width = 800, height = 800)
+```
+
+```{r IND VAL, echo=TRUE}
+# Individual Plot VAL
+
+VALIND<-ggplot(VAL, aes(x = Time, y = Value))
+VALIND <- VALIND + geom_line(aes(color = Condition, group = ID)) + geom_point()
+
+# Divide panels for conditions (rows) and participants (columns)
+VALIND <- VALIND + facet_grid(Condition ~ ID) 
+
+
+VALIND <- VALIND +
+  labs (y= "Voluntary Activation (%)",
+    x= element_blank(),
+    title = "VAL for each participant"
+    ) +
+  theme(
+    strip.background = element_blank(),
+    legend.title = element_blank(),
+    strip.text.x = element_blank())+
+  sm_minimal()+
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90, hjust = 1, size = 7))+
+  easy_remove_legend()
+
+
+ggplotly(VALIND, width = 800, height = 800)
+```
+
+```{r IND Doublet, echo=TRUE}
+# Individual Plot Doublet
+
+DoubletIND<-ggplot(Doublet, aes(x = Time, y = Value))
+DoubletIND <- DoubletIND + geom_line(aes(color = Condition, group = ID)) + geom_point()
+
+# Divide panels for conditions (rows) and participants (columns)
+DoubletIND <- DoubletIND + facet_grid(Condition ~ ID) 
+
+
+DoubletIND <- DoubletIND +
+  labs (y= "100 Hz paired stimulation (N)", 
+    x= element_blank(),
+    title = "Potentiated Doublet amplitude (100 Hz) for each participant"
+    ) +
+  theme(
+    strip.background = element_blank(),
+    legend.title = element_blank(),
+    strip.text.x = element_blank())+
+  sm_minimal()+
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90, hjust = 1, size = 7))+
+  easy_remove_legend()
+
+
+ggplotly(DoubletIND, width = 800, height = 800)
+```
+
+```{r IND ratio, echo=TRUE}
+# Individual Plot Ratio
+
+RatioIND<-ggplot(Ratio, aes(x = Time, y = Value))
+RatioIND <- RatioIND + geom_line(aes(color = Condition, group = ID)) + geom_point()
+
+# Divide panels for conditions (rows) and participants (columns)
+RatioIND <- RatioIND + facet_grid(Condition ~ ID) 
+
+
+RatioIND <- RatioIND +
+  labs (y= "Ratio 10 Hz / 100 Hz (%)",
+    x= element_blank(),
+    title = "Ratio 10 Hz / 100 Hz for each participant"
+    ) +
+  theme(
+    strip.background = element_blank(),
+    legend.title = element_blank(),
+    strip.text.x = element_blank())+
+  sm_minimal()+
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90, hjust = 1, size = 7))+
+  easy_remove_legend()
+
+
+ggplotly(RatioIND, width = 800, height = 800)
+```
+***
+## 6. Transcranial magnetic stimulation
+Transcranial magnetic stimulation was equally used to establish a potential link between corticospinal  excitability and mental fatigue, as an underlying mechanism by which mental fatigue might reduce exercise performance. 
+
+```{r TMS wrangling, echo = TRUE}
+
+# Reorganizing a messy data set. My bad, my bad
+TMS<-TMS %>%
+  select(ID,
+         FAT_PRE_AV20,FAT_PRE_AVG10,FAT_PRE_RATIO, FAT_POS_AV20,FAT_POS_AVG10,FAT_POS_RATIO,
+         CON_PRE_AV20,CON_PRE_AVG10,CON_PRE_RATIO, CON_POS_AV20,CON_POS_AVG10,CON_POS_RATIO,
+         )
+
+# Chose the variables, create the col Condition, time, and the variable, put the data into the col. Value
+# and drop NA values.  Condition are separated for _
+TMS_long<- pivot_longer(TMS, cols =2:13, names_to = c("Condition", "Time", "Variable"),
+                        names_sep = "_", values_to = "Value", values_drop_na = TRUE)
+# Rename variables names
+TMS_long <- TMS_long %>% 
+  mutate(Condition= recode (Condition, FAT = "Mental Fatigue", CON = "Control")) %>% 
+  mutate(Time= recode(Time, PRE ="Pre", POS= "Post"))%>% 
+  mutate(Variable= recode(Variable, AV20= "AVG20"))
+# Keep the order
+TMS_long$Time <- factor(TMS_long$Time, levels=c("Pre", "Post"))
+```
+
+### 6.1 Global values
+We stimulated the left motor cortex 20 times to obtain the motor evoked potentials (MEPs) measured in your hand before and after the cognitive tasks.
+
+MEP might serve as an index of motor cortex excitability. In our study we were interested in knowing if mental fatigue reduced the excitability of the motor cortex and then, this could explain the possible reduction in the exercise performance.
+
+We we calculated the average of these 20 stimulation and the result is:
+
+```{r TMS resul, echo=TRUE}
+
+# take only the variable avg 20 of the data set.
+AVG20<- filter(TMS_long, Variable =="AVG20") %>% convert_as_factor(ID, Condition,Time)
+# Exclude participants with excessive noise in the signal
+AVG20 <- AVG20 %>%  filter(!ID %in% c("8", "18"))
+
+sumrepdatAVG20 <- summarySE(AVG20, measurevar = "Value",
+                          groupvars=c("Condition", "Time"))
+
+TMSrain <- ggplot(AVG20, aes(x = Time, y = Value, fill = Condition)) +
+  geom_flat_violin(aes(fill = Condition),position = position_nudge(x = .1, y = 0), adjust = 1.5, trim = FALSE, alpha = .5, colour = NA)+
+  geom_point(aes(x = as.numeric(Time)-.15, y = Value, colour = Condition),position = position_jitter(width = .05), size = .25, shape = 20)+
+  geom_boxplot(aes(x = Time, y = Value, fill = Condition),outlier.shape = NA, alpha = .5, width = .1, colour = "black")+
+  geom_line(data = sumrepdatAVG20, aes(x = as.numeric(Time)+.1, y = Value, group = Condition, colour = Condition), linetype = 3)+
+  geom_point(data = sumrepdatAVG20, aes(x = as.numeric(Time)+.1, y = Value, group = Condition, colour = Condition), shape = 18) +
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  sm_classic() +
+  labs( y = "MEP amplitude (mV)", x = element_blank(),
+        title ="Average 20 MEPs",
+        caption = "n = 20")
+
+TMSrain
+```
+
+Once again, corticospinal excitability was not affected by the high cognitive load of the task.
+
+### 6.2 Individual values
+
+```{r IND TMS, echo=TRUE}
+
+# Plot for individual data for Motor Evoked potentials
+AVG20plot<-ggplot(AVG20, aes(x = Time, y = Value ))
+AVG20plot <- AVG20plot + geom_line(aes(color = Condition, group = ID)) + geom_point()
+
+
+# Divide panels for conditions (rows) and participants (columns)
+AVG20plot <- AVG20plot + facet_grid(Condition ~ ID) 
+
+
+AVG20plot <- AVG20plot +
+  labs (y= "MEP amplitude (mV)",
+    x= element_blank(),
+    title = "Average 20 MEPs for each participant",
+    caption = "n = 20") +
+  theme(
+    strip.background = element_blank(),
+    legend.title = element_blank(),
+    strip.text.x = element_blank())+
+  sm_minimal()+
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90, hjust = 1, size = 8))+
+  easy_remove_legend()
+
+ggplotly(AVG20plot)
+
+```
+
+We can see that the response is variable and there is not a patron in this sample. Thus, we cannot say that motor cortex excitability was affected. FYI, having a higher or lower amplitude do not indicate anything in particular about you, thus do not worry about these values.
+***
+
+## 7. Brain Oxygenation
+
+Since individual differences can also be reflected at the brain level, we measured cerebral oxygenation via near-infrared spectroscopy (NIRS) to study the adjustments of individual cerebral activation that occur during mentally fatiguing tasks and in order to assess whether brain oxygenation could be used as an objective biomarker of mental fatigue. Some recent research showed that brain oxygenation increases in frontal areas during mental effort tasks, thus we were interesting in monitoring this parameter.
+
+```{r, include=FALSE}
+require(tidyverse)
+library(dplyr)
+library(tidyr)
+library(tibble)
+require(purrr)
+require(readxl)
+library(writexl)
+library(zoo)
+library(smplot2)
+library(ggeasy)
+library(cowplot)
+
+```
+
+```{r change paths, echo= FALSE}
+
+knitr::opts_knit$set(root.dir = "~/Postdoc/Margarita Salas/Main Project_Lausanne/Analysis/NIRS")
+
+```
+
+### 7.1 Pre-processing
+Here, we had to do many steps to process the data, since there were multiples files that we needed to merge in a single file, but it can be done in a few seconds.
+```{r pattern excel, echo=TRUE, results='hide'}
+# Define the list of files with the desired pattern i.e., excel files
+# you will need to download the data from OSF and put it in a folder.
+my_files <- list.files(pattern = "*.xlsx")
+my_files
+
+```
+
+```{r loop nirs, error=FALSE, warning=FALSE, message=FALSE}
+invisible({capture.output({
+
+  # Loop for combining the excel files. 
+# Choose the values for each participant from time 0 (row 0) to max time 1800s (the task lasted 30min)
+# I did some cleaning in the original file before, like e.g., removing the first 50 rows (descriptive data)...
+# and change the time scale from 0 to 1800sec as original files did not begin at the same numerical time...probably could be done here (see later)...but i found easier it for the number of files i had to handle :)
+
+nirs <- lapply(my_files, function(i){
+  x=read_excel(i, sheet = 1)
+  x=x [c(0:1800), c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)] # select the columns columns variables. There are 15 col with data
+  x$file = i
+  x
+})
+
+})})
+```
+
+Now, all files are merged in one list with multiple data frames. However, they still need to be processed because we need to merge it in only one data.frame, there are some missing values, labels are not correct, etc.
+
+```{r nirs dive}
+
+# Bind multiple data frames by row and column
+nirs <- nirs %>%
+  dplyr::bind_rows(nirs)
+
+# Separate column to create participant and condition
+nirs=separate(nirs, file, sep="_", into = c("ID", "Condition"))
+# Change label of participants
+nirs <- nirs %>%  
+  mutate(Condition= recode(Condition, A.xlsx ="Control", B.xlsx ="Mental Fatigue"))  
+
+# change 0 values to NA
+  nirs[nirs == 0] <- NA
+# Drop all NA values
+nirs <- na.omit(nirs)
+
+# Change column names()
+nirs <- setNames(nirs, (c("Time", "Tx1,Tx2,Tx3 TSI%", "Tx1,Tx2,Tx3 TSI Fit",
+                   "Tx1-O2Hb", "Tx1-HHb", "Tx1-tHb", "Tx1-HbDiff",
+                   "Tx2-O2Hb", "Tx2-HHb", "Tx2-tHb", "Tx2-HbDiff",
+                   "Tx3-O2Hb", "Tx3-HHb", "Tx3-tHb", "Tx3-HbDiff",
+                   "ID", "Condition"
+                   )))
+
+# Reorder the columns. Just for aesthetics purpose
+nirs <- nirs %>% 
+select(ID, Time, Condition, everything()) 
+
+# Calculate the average for the 3 Nirs "lengths" and add to the data.frame
+nirs$O2Hbtotal<- ((nirs$`Tx1-O2Hb` + nirs$`Tx2-O2Hb` + nirs$`Tx3-O2Hb`)/3)
+nirs$HHbtotal <- ((nirs$`Tx1-HHb` + nirs$`Tx2-HHb` + nirs$`Tx3-HHb`)/3)
+nirs$HbDiff <- ((nirs$`Tx1-HbDiff` + nirs$`Tx2-HbDiff` + nirs$`Tx3-HbDiff`)/3)
+nirs$tHb <- (nirs$O2Hbtotal + nirs$HHbtotal)
+
+```
+
+It is almost done, but we were interested in the time on task effect, i.e., how brain oxygenation varied across the performance of the cognitive task. Therefore, we need to create periods (bin) to divide the 1800s (we divided in 8 periods 4 min). This is how to do it:
+
+```{r nirs bins}
+# Create bins of of time (8 blocks of 4 min) (with this, one could easily avoid to adapt the time of each individual file, but i realized late...it's learning by doing and it s-works)
+
+# create the variable to cut the times
+time <- nirs$Time
+# create 6 bins of equal length 
+nirs$Period <-  cut(time, 8, labels = c("t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8"))
+
+```
+
+There is a bit more of pre-processing... 
+
+```{r nirs long}
+nirs_long <- pivot_longer(nirs, cols = 4:21, names_to = "Variable", values_to = "Values")
+
+# Create long format with the average of each period and variable for each participant
+nirs_stat <- nirs_long %>% 
+  group_by(ID, Condition, Period, Variable) %>% 
+  summarise_at(vars(Values),              # Specify column
+               list(average = mean))
+
+# Select only the variable of (possible) interest
+target <- c("O2Hbtotal", "HHbtotal", "HHbtotal", "HbDiff", "tHb", "Tx1,Tx2,Tx3 TSI%")
+
+
+# include these variables in the data frame
+nirs_stat <- filter(nirs_stat, Variable %in% target)
+
+```
+
+Here, we can finally see the result of the analysis: 
+
+```{r nirs plot, echo=TRUE}
+
+O2 <- filter(nirs_stat, Variable == "O2Hbtotal") %>% 
+   group_by(Period, Condition) %>% summarise_at(vars(average),           
+                                                list(average = mean))
+
+HHB <- filter(nirs_stat, Variable == "HHbtotal") %>% 
+  group_by(Period, Condition) %>% summarise_at(vars(average),           
+                                               list(average = mean))
+
+
+
+O2Plot <- ggplot(na.omit(O2), aes(x = Period, y = average, colour = Condition, group = Condition) ) +
+  geom_point() + 
+  geom_line()+
+  scale_y_continuous(limits = c(-5, 2))+ 
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  sm_classic() +
+  easy_remove_x_axis(what = "text")+
+  geom_hline(yintercept = 0, linetype='dotted', col = 'gray')+
+  labs( y = "Δ oxy-HB  (μm)", x = element_blank(),
+        title =" Oxyhaemoglobin",
+        subtitle = " ",
+        caption = "")+
+  size
+
+
+HHBPlot <- ggplot(na.omit(HHB), aes(x = Period, y = average, colour = Condition, group = Condition) ) +
+  geom_point() + 
+  geom_line()+
+  scale_y_continuous(limits = c(-6, 2))+ 
+  scale_colour_brewer(palette = "Set2")+
+  scale_fill_brewer(palette = "Set2")+
+  sm_classic() +
+  easy_remove_x_axis(what = "text")+
+  geom_hline(yintercept = 0, linetype='dotted', col = 'gray')+
+  labs( y = "Δ deoxy-HB  (μm)", x = element_blank(),
+        title =" Dexoyhaemoglobin",
+        subtitle = " ",
+        caption = "")+
+  size
+
+
+
+
+NIRSplot <- ggarrange(O2Plot, HHBPlot,
+                        labels = c("A", "B", "C"),
+                        ncol = 1, nrow = 2, 
+                        common.legend = T,
+                        legend = "right",
+                        align = "h"
+)
+
+NIRSplot
+```
+
+Some studies have pointed out that brain oxygenation (Oxyhaemoglobin) increases in frontal areas throughout the course of mental effort tasks. One hypothesis is that we have to allocate  more "cognitive resources" to perform task involving the pre-frontal cortex (i.e., the TloadDback). Nonetheless, our results did not support this hypothesis in this experiment. There were not differences between the two conditions or across time. It is also true that these studies used fNIRS, thus they had better accuracy. We also compared the Dex-Oxyhaemoglobin and it is similar.
+
+I'm not including individual values, because they don't represent anything particularly interesting to you.
+
+***
+## 8. Conclusions
+
+<style>
+div.blue { background-color:#e6f0ff; border-radius: 5px; padding: 20px;}
+</style>
+<div class = "blue">
+
+It is a complicated and complex topic, and we do not have a definitive answer ! Mental fatigue induced "artificially" in a lab with a cognitive task with high demands does not seem to have negative effect in this study. Nonetheless, we should keep in mind that this is only one study and we should look at the cumulative evidence. In others words, if the topic of mental fatigue and exercise is a movie, this study is only a photogram (but in 4K `r emo::ji("smile")` !)
+Finally, either when you see a study showing a positive or a negative results, take it with a pinch of salt! Because there is too much hype in medias, and others things related to academia...
+
+You can read the full article [here]()
+and statistical analysis are in JASP format in [OSF](https://osf.io/xc8nr/), more user friendly.
+
+If you still have any doubts, feel free to [Contact me](mailto:darias.holgado@unil.ch)
+
+</div>
+
+
+***
+
