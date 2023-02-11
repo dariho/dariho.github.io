@@ -21,7 +21,7 @@ navigation:                # accepts {file, title, url, icon, sidebaricon}
   - {file: "Projects.md", title: "Projects", sidebaricon: adress-card}
   #- {file: "Media.md", title: "Media", sidebaricon: home}
   - {file: "Links.md", title: "Links to data", sidebaricon: home}
-  - {file: "MD_IMF22.Rmd", title: "Behind the scenes", sidebaricon: home}
+  #- {file: "MD_IMF22.Rmd", title: "Behind the scenes", sidebaricon: home}
 
 external:                  # shows a footer with social links - for available icons see fontawesome.com/icons
   - {title: Mail, icon: envelope, url: "mailto:darias.holgado@unil.ch"}
