@@ -11,7 +11,7 @@ layout: page
 
 ## Journal Articles
 ### 2023
-1. **Darías Holgado** & Cristian Mesquida. (2023). Assessing the evidential value of mental fatigue and exercise research. SportRxiv. https://doi.org/10.51224/SRXIV.245
+1. **Darías Holgado** & Cristian Mesquida. (2023). Assessing the evidential value of mental fatigue and exercise research. [SportRxiv](https://doi.org/10.51224/SRXIV.245)
 
 ### 2022
  1. Luis F. Ciria, Rafael Román-Caballero, Miguel Vadillo, **Darias Holgado**, Antonio Luque-Casado , Pandelis Perakakis & Daniel Sanabria (2022). An umbrella review of randomized control trials on the effects of physical exercise on cognition. [BioRxiv](https://doi.org/10.1101/2022.02.15.480508)
