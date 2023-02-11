@@ -10,8 +10,11 @@ layout: page
 [Thesis Common](https://thesiscommons.org/vtyfu/)
 
 ## Journal Articles
+### 2023
+1. **Darías Holgado** & Cristian Mesquida. (2023). Assessing the evidential value of mental fatigue and exercise research. SportRxiv. https://doi.org/10.51224/SRXIV.245
+
 ### 2022
- 1. Luis F. Ciria, Rafael Román-Caballero, Miguel Vadillo, **Darias Holgado**, Antonio Luque-Casado , Pandelis Perakakis & Daniel Sanabria (2022). A call to rethink the cognitive benefits of physical exercise: An umbrella review of randomized controlled trials. [BioRxiv](https://doi.org/10.1101/2022.02.15.480508)
+ 1. Luis F. Ciria, Rafael Román-Caballero, Miguel Vadillo, **Darias Holgado**, Antonio Luque-Casado , Pandelis Perakakis & Daniel Sanabria (2022). An umbrella review of randomized control trials on the effects of physical exercise on cognition. [BioRxiv](https://doi.org/10.1101/2022.02.15.480508)
  2. **Darías Holgado**, Agustín Manresa-Rocamora, Lorenzo Zamboni, Fabio Lugoboni, Ana Peiró, & Thomas Zandonai (2022). The effect of benzodiazepines on exercise in healthy adult participants: A systematic review. Journal of Addictive Diseases, 0(0), 1–9. [Online Article](https://doi.org/10.1080/10550887.2021.1990640)
 
 ### 2021
