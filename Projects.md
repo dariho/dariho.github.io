@@ -20,10 +20,10 @@ We are interesting in experimental studies as well as the anlysis of the literat
 # Transcranial direct current stimulation
 Can we actually enhance exercise performance by stimulating the brain? The current evidence does not seem to support this notion. 
 However, there has been an increasing number of meta-analysis in recent years, whereas the number of high quality primary studies not. 
-- [**Meta-analysis**](https://osf.io/bh3g9/) and [**umbrella review**](https://osf.io/73qsu/) of the effects of transcranial direct current stimulation on of exercise performance
+- [**Meta-analysis**](https://osf.io/bh3g9/) and [**umbrella review**](https://osf.io/73qsu/) (on-going) of the effects of transcranial direct current stimulation on of exercise performance
 
 # Analgesics and exercise performance
 Can analgesics like paracetamol, tramadol or glucocorticoids improve exercise performance? 
 We are looking at if these substance has an ergogenic effect on exercise performance or if they could be harmfull for athletes.
--[A network meta-analysis of the efficacy of analgesics to improve exercise performance](https://osf.io/bkszn/)
+-[A network meta-analysis of the efficacy of analgesics to improve exercise performance](https://osf.io/bkszn/) (on-going)
 - We have been funded by the WADA several times to carry out studies about the effect of [**tramadol**](https://osf.io/xbvt5/) and [**paracetamol**](https://osf.io/sbwx4/) on exercise and cognitive performance cognitive performance.
