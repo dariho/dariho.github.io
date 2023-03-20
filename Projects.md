@@ -12,7 +12,7 @@ We are interested in how mental fatigue impact exercise, how exercise impact men
 We are interesting in experimental studies as well as the anlysis of the literature.
 
 - [Assessing the evidential value of the current literature of mental fatigue and exercise](https://osf.io/5zbyu/)
-- [Individualized mental fatigue does not impact neuromuscular function and exercise performance?](https://osf.io/xc8nr/)
+- [Individualized mental fatigue does not impact neuromuscular function and exercise performance](https://osf.io/xc8nr/)
 - [The effects of mental fatigue on objective and subjective indexes of sport performance](https://osf.io/s5tz6/)
 - [Conceptual replication of "Mental fatigue impairs physical performance in humans"](https://osf.io/wqkap/)
 
