@@ -11,10 +11,12 @@ layout: page
 
 ## Journal Articles
 ### 2023
-1. **Darías Holgado** & Cristian Mesquida. (2023). Assessing the evidential value of mental fatigue and exercise research. [SportRxiv](https://doi.org/10.51224/SRXIV.245)
+1. Luis F. Ciria, Rafael Román-Caballero, Miguel Vadillo, **Darias Holgado**, Antonio Luque-Casado , Pandelis Perakakis & Daniel Sanabria (2022). An umbrella review of randomized control trials on the effects of physical exercise on cognition. [Nat Hum Behav](https://www.nature.com/articles/s41562-023-01554-4)
+2. **Darías Holgado** & Cristian Mesquida. (2023). Assessing the evidential value of mental fatigue and exercise research. [SportRxiv](https://doi.org/10.51224/SRXIV.245)
+3.  **Darías Holgado**, Léo Jolidon, Guillermo Borragan, Daniel Sanabria, Nicolas Place. (2023). Individualized mental fatigue does not impact neuromuscular function and exercise performance. [SportRxiv](https://doi.org/10.51224/SRXIV.260)
+
 
 ### 2022
- 1. Luis F. Ciria, Rafael Román-Caballero, Miguel Vadillo, **Darias Holgado**, Antonio Luque-Casado , Pandelis Perakakis & Daniel Sanabria (2022). An umbrella review of randomized control trials on the effects of physical exercise on cognition. [BioRxiv](https://doi.org/10.1101/2022.02.15.480508)
  2. **Darías Holgado**, Agustín Manresa-Rocamora, Lorenzo Zamboni, Fabio Lugoboni, Ana Peiró, & Thomas Zandonai (2022). The effect of benzodiazepines on exercise in healthy adult participants: A systematic review. Journal of Addictive Diseases, 0(0), 1–9. [Online Article](https://doi.org/10.1080/10550887.2021.1990640)
 
 ### 2021
