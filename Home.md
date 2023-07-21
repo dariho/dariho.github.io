@@ -13,7 +13,7 @@ Currently,  I am researcher at the University of Lausanne in Switzerland and the
 
 I am a believer of Open Science (e.g., preregistration of studies, open access data), but it is not the only way of doing better. For a full CV, [click here](https://drive.google.com/file/d/1DJUXNLIzsLcR9Pl0d1wBuOcVNei2_YOG/view?usp=sharing)
 
-Research is part of my life, but it is also baking (cheesecakes), running, cycling and filming, and normally the combination of all of them.
+Research is part of my life, but it is also baking (cheesecakes), running, cycling and filming, but normally the combination of all of them.
 
 ---
 
