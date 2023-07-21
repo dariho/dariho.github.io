@@ -11,7 +11,7 @@ I completed my PhD entitled “Executive functions, self-paced exercise and cycl
 
 Currently,  I am researcher at the University of Lausanne in Switzerland and the University of Granada in Spain. I am always open to collaborate if we have similar interests and vision of science.
 
-I am a believer of Open Science (e.g., preregistration of studies, open access data), but it is not the only way of doing better. For a full CV[click here](https://drive.google.com/file/d/1DJUXNLIzsLcR9Pl0d1wBuOcVNei2_YOG/view?usp=sharing)
+I am a believer of Open Science (e.g., preregistration of studies, open access data), but it is not the only way of doing better. For a full CV, [click here](https://drive.google.com/file/d/1DJUXNLIzsLcR9Pl0d1wBuOcVNei2_YOG/view?usp=sharing)
 
 
 Research is part of my life, but it is also baking (cheesecakes), running, cycling and filming.
