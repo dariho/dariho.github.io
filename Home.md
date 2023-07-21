@@ -5,6 +5,7 @@ layout: page
 ---
 
 # About me
+![Book logo](/least-github-pages/home/profile.png)
 
 I completed my PhD entitled “Executive functions, self-paced exercise and cycling performance". My main interest is to understand the cognitive and neural bases of exercise to bridge the gap between Sport Science, Psychology and Cognitive Neuroscience. During the PhD, I have worked on several articles on this topic. Moreover, I am interested in meta research.  In summary, I have tried not to specialize in any particular subject/discipline, but to unite the different perspectives.
 
