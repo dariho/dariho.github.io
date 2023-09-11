@@ -11,8 +11,8 @@ layout: page
 
 ## Journal Articles
 ### 2023
-1. Luis F. Ciria, Rafael Román-Caballero, Miguel Vadillo, **Darias Holgado**, Antonio Luque-Casado, Pandelis Perakakis and Daniel Sanabria (2023). An umbrella review of randomized control trials on the effects of physical exercise on cognition. Nat Hum Behav. [Online Article](https://www.nature.com/articles/s41562-023-01554-4)
-2. **Darías Holgado**, Cristian Mesquida and Rafael Román-Caballero. (2023). Assessing the evidential value of mental fatigue and exercise research. SportRxiv. [Online Article](https://doi.org/10.51224/SRXIV.245)
+1. **Darías Holgado**, Cristian Mesquida and Rafael Román-Caballero. (2023). Assessing the evidential value of mental fatigue and exercise research. Sports Medicine. [Online Article](https://rdcu.be/dlHa9)
+2. Luis F. Ciria, Rafael Román-Caballero, Miguel Vadillo, **Darias Holgado**, Antonio Luque-Casado, Pandelis Perakakis and Daniel Sanabria (2023). An umbrella review of randomized control trials on the effects of physical exercise on cognition. Nat Hum Behav. [Online Article](https://www.nature.com/articles/s41562-023-01554-4)
 3.  **Darías Holgado**, Léo Jolidon, Guillermo Borragan, Daniel Sanabria and Nicolas Place. (2023). Individualized mental fatigue does not impact neuromuscular function and exercise performance. Medicine & Science in Sports & Exercise. [Online Article](https://doi.org/10.51224/SRXIV.260)
 
 
